@@ -2,9 +2,13 @@ interval_seconds = 60
 timeout_seconds = 10
 
 [[sites]]
-name = "Site Principal"
-url = "https://example.com"
+name = "Evenyx"
+url = "https://www.evenyx.com"
+auth_token_env = "EVENYX_HEALTH_TOKEN"
+accepted_status_codes = [200, 301, 302]
 
 [[sites]]
-name = "API"
-url = "https://example.com/health"
+name = "Acesso Ticket"
+url = "https://www.acessoticket.com"
+auth_token_env = "ACESSO_TICKET_HEALTH_TOKEN"
+accepted_status_codes = [200, 301, 302]

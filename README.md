@@ -7,7 +7,7 @@ Robo simples para monitorar dois sites e avisar quando algum deles cair.
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -e ".[dev,twilio]"
+pip install ".[dev,twilio]"
 ```
 
 ## Configurar sites
@@ -21,11 +21,20 @@ timeout_seconds = 10
 [[sites]]
 name = "Site Principal"
 url = "https://example.com"
+auth_token_env = "SITE_PRINCIPAL_HEALTH_TOKEN"
+accepted_status_codes = [200, 301, 302]
 
 [[sites]]
 name = "API"
 url = "https://example.com/health"
+auth_token_env = "API_HEALTH_TOKEN"
+accepted_status_codes = [200, 204]
 ```
+
+Quando o site exigir token, defina a variável de ambiente correspondente antes
+de rodar o monitor. O token é enviado como `Authorization: Bearer <token>`.
+Use `accepted_status_codes` quando o alvo retorna um status específico mesmo
+estando acessível.
 
 ## Rodar no terminal
 

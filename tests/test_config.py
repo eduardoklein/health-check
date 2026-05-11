@@ -18,6 +18,8 @@ url = "https://portal.example"
 [[sites]]
 name = "API"
 url = "https://api.example/health"
+auth_token_env = "API_TOKEN"
+accepted_status_codes = [200, 204, 403]
 """.strip(),
         encoding="utf-8",
     )
@@ -28,5 +30,10 @@ url = "https://api.example/health"
     assert config.timeout_seconds == 4
     assert config.sites == [
         SiteTarget(name="Portal", url="https://portal.example"),
-        SiteTarget(name="API", url="https://api.example/health"),
+        SiteTarget(
+            name="API",
+            url="https://api.example/health",
+            auth_token_env="API_TOKEN",
+            accepted_status_codes={200, 204, 403},
+        ),
     ]
