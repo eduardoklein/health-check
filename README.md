@@ -50,6 +50,39 @@ Para executar apenas uma verificação:
 health-check --config config.toml --notifier console --once
 ```
 
+## Enviar alerta por e-mail
+
+Configure o `.env`:
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=alertas@suaempresa.com
+SMTP_PASSWORD=senha-ou-app-password
+ALERT_EMAIL_FROM=alertas@suaempresa.com
+ALERT_EMAIL_TO=pessoa1@suaempresa.com,pessoa2@suaempresa.com
+```
+
+Depois rode:
+
+```bash
+health-check --config config.toml --notifier email
+```
+
+## Enviar alerta por Discord
+
+Configure o `.env`:
+
+```env
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
+```
+
+Depois rode:
+
+```bash
+health-check --config config.toml --notifier discord
+```
+
 ## Enviar WhatsApp com Twilio
 
 Configure as variáveis de ambiente:

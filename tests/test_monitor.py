@@ -77,6 +77,28 @@ def test_monitor_logs_status_for_all_targets():
     assert status_logger.messages == [
         "STATUS: Site One esta no ar. URL: https://one.example. Status: 200.",
         "STATUS: Site Two esta fora do ar. URL: https://two.example. Status: 500.",
+        "NOTIFICACAO: alerta enviado para Site Two.",
+    ]
+
+
+def test_monitor_logs_when_alert_notification_is_sent():
+    checker = FakeChecker(
+        [HealthCheckResult(url="https://one.example", is_up=False, status_code=500)]
+    )
+    notifier = FakeNotifier()
+    status_logger = FakeStatusLogger()
+
+    monitor_once(
+        [SiteTarget(name="Site One", url="https://one.example")],
+        checker,
+        notifier,
+        previous_down_urls=set(),
+        status_logger=status_logger,
+    )
+
+    assert status_logger.messages == [
+        "STATUS: Site One esta fora do ar. URL: https://one.example. Status: 500.",
+        "NOTIFICACAO: alerta enviado para Site One.",
     ]
 
 

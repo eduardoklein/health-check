@@ -3,12 +3,16 @@ from pathlib import Path
 import sys
 import time
 
+from dotenv import load_dotenv
+
 from health_check.checker import HttpChecker
 from health_check.config import load_config
 from health_check.monitor import monitor_once
 from health_check.notifiers import (
     ConsoleNotifier,
     ConsoleStatusLogger,
+    DiscordNotifier,
+    EmailNotifier,
     TwilioWhatsAppNotifier,
 )
 
@@ -22,7 +26,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--notifier",
-        choices=["console", "twilio-whatsapp"],
+        choices=["console", "email", "discord", "twilio-whatsapp"],
         default="console",
         help="Canal usado para enviar alertas.",
     )
@@ -33,8 +37,11 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    config_path = Path(args.config)
+    load_dotenv(config_path.parent / ".env")
+
     try:
-        config = load_config(Path(args.config))
+        config = load_config(config_path)
     except FileNotFoundError as exc:
         print(f"config file not found: {exc.filename}", file=sys.stderr)
         raise SystemExit(2) from exc
@@ -62,6 +69,10 @@ def main() -> None:
 
 
 def _build_notifier(name: str):
+    if name == "email":
+        return EmailNotifier.from_env()
+    if name == "discord":
+        return DiscordNotifier.from_env()
     if name == "twilio-whatsapp":
         return TwilioWhatsAppNotifier.from_env()
 

@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from health_check.config import load_config
 from health_check.monitor import SiteTarget
 
@@ -37,3 +39,18 @@ accepted_status_codes = [200, 204, 403]
             accepted_status_codes={200, 204, 403},
         ),
     ]
+
+
+def test_load_config_rejects_url_without_valid_domain_suffix(tmp_path):
+    config_file = tmp_path / "config.toml"
+    config_file.write_text(
+        """
+[[sites]]
+name = "Evenyx"
+url = "https://www.evenyx"
+""".strip(),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="invalid url for Evenyx"):
+        load_config(Path(config_file))

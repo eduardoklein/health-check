@@ -59,6 +59,8 @@ def monitor_once(
         current_down_urls.add(target.url)
         if target.url not in previous_down_urls:
             notifier.send(_down_message(target, result))
+            if status_logger:
+                status_logger.log(f"NOTIFICACAO: alerta enviado para {target.name}.")
 
     return current_down_urls
 

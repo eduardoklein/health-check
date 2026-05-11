@@ -1,5 +1,10 @@
 import os
+import smtplib
 from dataclasses import dataclass
+from email.message import EmailMessage
+from typing import Callable
+
+import requests
 
 
 class ConsoleNotifier:
@@ -10,6 +15,64 @@ class ConsoleNotifier:
 class ConsoleStatusLogger:
     def log(self, message: str) -> None:
         print(message, flush=True)
+
+
+@dataclass(frozen=True)
+class EmailNotifier:
+    host: str
+    port: int
+    username: str
+    password: str
+    from_address: str
+    to_addresses: tuple[str, ...]
+    smtp_factory: Callable[..., smtplib.SMTP] = smtplib.SMTP
+    timeout_seconds: float = 10
+
+    @classmethod
+    def from_env(cls) -> "EmailNotifier":
+        return cls(
+            host=_required_env("SMTP_HOST"),
+            port=int(os.environ.get("SMTP_PORT", "587")),
+            username=_required_env("SMTP_USERNAME"),
+            password=_required_env("SMTP_PASSWORD"),
+            from_address=_required_env("ALERT_EMAIL_FROM"),
+            to_addresses=_email_recipients(_required_env("ALERT_EMAIL_TO")),
+        )
+
+    def send(self, message: str) -> None:
+        email = EmailMessage()
+        email["Subject"] = "Health check alert"
+        email["From"] = self.from_address
+        email["To"] = ", ".join(self.to_addresses)
+        email.set_content(message)
+
+        with self.smtp_factory(
+            self.host,
+            self.port,
+            timeout=self.timeout_seconds,
+        ) as smtp:
+            smtp.starttls()
+            smtp.login(self.username, self.password)
+            smtp.send_message(email)
+
+
+@dataclass(frozen=True)
+class DiscordNotifier:
+    webhook_url: str
+    post: Callable[..., requests.Response] = requests.post
+    timeout_seconds: float = 10
+
+    @classmethod
+    def from_env(cls) -> "DiscordNotifier":
+        return cls(webhook_url=_required_env("DISCORD_WEBHOOK_URL"))
+
+    def send(self, message: str) -> None:
+        response = self.post(
+            self.webhook_url,
+            json={"content": message},
+            timeout=self.timeout_seconds,
+        )
+        response.raise_for_status()
 
 
 @dataclass(frozen=True)
@@ -50,3 +113,14 @@ def _required_env(name: str) -> str:
     if not value:
         raise RuntimeError(f"missing required environment variable: {name}")
     return value
+
+
+def _email_recipients(raw_value: str) -> tuple[str, ...]:
+    recipients = tuple(
+        recipient.strip()
+        for recipient in raw_value.split(",")
+        if recipient.strip()
+    )
+    if not recipients:
+        raise RuntimeError("ALERT_EMAIL_TO must define at least one recipient")
+    return recipients
