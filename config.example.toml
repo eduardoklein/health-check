@@ -1,0 +1,10 @@
+interval_seconds = 60
+timeout_seconds = 10
+
+[[sites]]
+name = "Site Principal"
+url = "https://example.com"
+
+[[sites]]
+name = "API"
+url = "https://example.com/health"
